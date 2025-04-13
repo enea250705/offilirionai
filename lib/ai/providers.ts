@@ -1,4 +1,5 @@
 import {
+  CustomLanguageModel,
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
@@ -12,61 +13,56 @@ import {
 } from './models.test';
 import { generateChatCompletion, generateImage } from './deepseek';
 
-// Create a wrapper for our custom DeepSeek implementation
-const customDeepSeek = {
-  specificationVersion: 'v1',
-  provider: 'custom',
-  modelId: 'deepseek-chat',
-  defaultObjectGenerationMode: 'json',
-  streamable: true,
-  async invoke(params: any) {
-    const { messages, maxTokens } = params;
-    const userMessage = messages[messages.length - 1].content;
-    const isPro = maxTokens > 4000; // Determine if this is a Pro user based on token allocation
-    
-    // Call our custom implementation
-    const response = await generateChatCompletion(userMessage, isPro);
-    
-    // Return in the format expected by the AI SDK
-    return {
-      content: response,
-      usage: {
-        prompt_tokens: messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) / 4,
-        completion_tokens: response.length / 4,
-        total_tokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
-      }
-    };
-  },
-  async doGenerate(params: any) {
-    return this.invoke(params);
-  },
-  async *doStream(params: any) {
-    const result = await this.invoke(params);
-    yield result;
-  }
-};
+// Create a simpler custom language model using the SDK's helper class
+class DeepSeekLanguageModel implements CustomLanguageModel {
+  id = 'deepseek-chat';
 
-// Create a wrapper for image generation
-const customDeepSeekImage = {
-  specificationVersion: 'v1',
-  provider: 'custom',
-  modelId: 'deepseek-image',
-  async invoke(params: any) {
-    const { prompt } = params;
-    const imageUrl = await generateImage(prompt);
-    
-    return {
-      images: [imageUrl]
-    };
-  },
-  async doGenerate(params: any) {
-    return this.invoke(params);
-  },
-  async *doStream(params: any) {
-    const result = await this.invoke(params);
-    yield result;
+  async generate(params: any) {
+    try {
+      const { messages, maxTokens } = params;
+      const userMessage = messages[messages.length - 1].content;
+      const isPro = maxTokens > 4000;
+      
+      const response = await generateChatCompletion(userMessage, isPro);
+      
+      return {
+        text: response,
+        usage: {
+          promptTokens: messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) / 4,
+          completionTokens: response.length / 4,
+          totalTokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
+        }
+      };
+    } catch (error) {
+      console.error('Error generating text with DeepSeek:', error);
+      return { text: 'An error occurred while generating a response.' };
+    }
   }
-};
+}
+
+// Create a simpler image generation model
+class DeepSeekImageModel implements CustomLanguageModel {
+  id = 'deepseek-image';
+
+  async generate(params: any) {
+    try {
+      const { prompt } = params;
+      const imageUrl = await generateImage(prompt);
+      
+      return {
+        text: '',
+        images: [imageUrl]
+      };
+    } catch (error) {
+      console.error('Error generating image with DeepSeek:', error);
+      return { text: 'An error occurred while generating an image.' };
+    }
+  }
+}
+
+// Create instances of our custom models
+const deepSeekLanguageModel = new DeepSeekLanguageModel();
+const deepSeekImageModel = new DeepSeekImageModel();
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -79,15 +75,15 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': customDeepSeek,
+        'chat-model': deepSeekLanguageModel,
         'chat-model-reasoning': wrapLanguageModel({
-          model: customDeepSeek,
+          model: deepSeekLanguageModel,
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': customDeepSeek,
-        'artifact-model': customDeepSeek,
+        'title-model': deepSeekLanguageModel,
+        'artifact-model': deepSeekLanguageModel,
       },
       imageModels: {
-        'small-model': customDeepSeekImage,
+        'small-model': deepSeekImageModel,
       },
     });
