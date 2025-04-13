@@ -84,6 +84,8 @@ function PureArtifact({
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
+  const safeMessages = Array.isArray(messages) ? messages : [];
+
   const {
     data: documents,
     isLoading: isDocumentsFetching,
@@ -314,7 +316,7 @@ function PureArtifact({
                   chatId={chatId}
                   status={status}
                   votes={votes}
-                  messages={messages}
+                  messages={safeMessages}
                   setMessages={setMessages}
                   reload={reload}
                   isReadonly={isReadonly}
@@ -331,7 +333,7 @@ function PureArtifact({
                     stop={stop}
                     attachments={attachments}
                     setAttachments={setAttachments}
-                    messages={messages}
+                    messages={safeMessages}
                     append={append}
                     className="bg-background dark:bg-muted"
                     setMessages={setMessages}

@@ -30,22 +30,25 @@ function PureMessages({
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
+  // Ensure messages is always an array
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  
   return (
     <div
       ref={messagesContainerRef}
       className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
     >
-      {messages.length === 0 && <Greeting />}
+      {safeMessages.length === 0 && <Greeting />}
 
-      {messages.map((message, index) => (
+      {safeMessages.map((message, index) => (
         <PreviewMessage
-          key={message.id}
+          key={message?.id || `msg-${index}`}
           chatId={chatId}
           message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
+          isLoading={status === 'streaming' && safeMessages.length - 1 === index}
           vote={
-            votes
-              ? votes.find((vote) => vote.messageId === message.id)
+            votes && Array.isArray(votes) && message?.id
+              ? votes.find((vote) => vote?.messageId === message.id)
               : undefined
           }
           setMessages={setMessages}
@@ -55,8 +58,8 @@ function PureMessages({
       ))}
 
       {status === 'submitted' &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+        safeMessages.length > 0 &&
+        safeMessages[safeMessages.length - 1]?.role === 'user' && <ThinkingMessage />}
 
       <div
         ref={messagesEndRef}
@@ -71,7 +74,12 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
 
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.status && nextProps.status) return false;
-  if (prevProps.messages.length !== nextProps.messages.length) return false;
+  
+  // Add safeguards against undefined properties
+  const prevLength = Array.isArray(prevProps.messages) ? prevProps.messages.length : 0;
+  const nextLength = Array.isArray(nextProps.messages) ? nextProps.messages.length : 0;
+  
+  if (prevLength !== nextLength) return false;
   if (!equal(prevProps.messages, nextProps.messages)) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
 
