@@ -9,6 +9,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import * as React from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { PiEyeLight, PiEyeSlashLight } from 'react-icons/pi';
+import type { VisibilityType } from '@/lib/types';
 
 import {
   CheckCircleFillIcon,
@@ -18,27 +29,20 @@ import {
 } from './icons';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 
-export type VisibilityType = 'private' | 'public';
-
-const visibilities: Array<{
-  id: VisibilityType;
-  label: string;
-  description: string;
-  icon: ReactNode;
-}> = [
+const visibilities = [
   {
     id: 'private',
     label: 'Private',
-    description: 'Only you can access this chat',
-    icon: <LockIcon />,
+    description: 'Only you can see this chat',
+    Icon: PiEyeSlashLight
   },
   {
     id: 'public',
     label: 'Public',
-    description: 'Anyone with the link can access this chat',
-    icon: <GlobeIcon />,
-  },
-];
+    description: 'Anyone with the link can see this chat',
+    Icon: PiEyeLight
+  }
+] as const;
 
 export function VisibilitySelector({
   chatId,
@@ -73,7 +77,7 @@ export function VisibilitySelector({
           variant="outline"
           className="hidden md:flex md:px-2 md:h-[34px]"
         >
-          {selectedVisibility?.icon}
+          {selectedVisibility?.Icon}
           {selectedVisibility?.label}
           <ChevronDownIcon />
         </Button>
