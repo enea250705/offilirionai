@@ -23,7 +23,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import type { Chat } from '@/lib/db/schema';
-import { fetcher } from '@/lib/utils';
 import { ChatItem } from './sidebar-history-item';
 import useSWRInfinite from 'swr/infinite';
 import { LoaderIcon } from './icons';
@@ -45,7 +44,7 @@ const PAGE_SIZE = 20;
 
 const isDbAvailable = !!process.env.POSTGRES_URL;
 
-const fetcher = async (url: string) => {
+const historyFetcher = async (url: string) => {
   if (!isDbAvailable) {
     console.warn('Database not available, returning mock chat history');
     return {
@@ -121,7 +120,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     isValidating,
     isLoading,
     mutate,
-  } = useSWRInfinite<ChatHistory>(getChatHistoryPaginationKey, fetcher, {
+  } = useSWRInfinite<ChatHistory>(getChatHistoryPaginationKey, historyFetcher, {
     fallbackData: [],
   });
 
