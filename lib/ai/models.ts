@@ -9,12 +9,12 @@ interface ChatModel {
 export const chatModels: Array<ChatModel> = [
   {
     id: 'chat-model',
-    name: 'Chat model',
-    description: 'Primary model for all-purpose chat',
+    name: 'DeepSeek Coder',
+    description: 'Specialized for code generation and development tasks',
   },
   {
     id: 'chat-model-reasoning',
-    name: 'Reasoning model',
-    description: 'Uses advanced reasoning',
+    name: 'DeepSeek LLM 67B',
+    description: 'Advanced large language model with superior reasoning capabilities',
   },
 ];

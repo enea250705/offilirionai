@@ -2,8 +2,8 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
+  deepseek,
 } from 'ai';
-import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -11,6 +11,41 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
+import { generateChatCompletion, generateImage } from './deepseek';
+
+// Create a wrapper for our custom DeepSeek implementation
+const customDeepSeek = {
+  async invoke(params: any) {
+    const { messages, maxTokens } = params;
+    const userMessage = messages[messages.length - 1].content;
+    const isPro = maxTokens > 4000; // Determine if this is a Pro user based on token allocation
+    
+    // Call our custom implementation
+    const response = await generateChatCompletion(userMessage, isPro);
+    
+    // Return in the format expected by the AI SDK
+    return {
+      content: response,
+      usage: {
+        prompt_tokens: messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) / 4,
+        completion_tokens: response.length / 4,
+        total_tokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
+      }
+    };
+  }
+};
+
+// Create a wrapper for image generation
+const customDeepSeekImage = {
+  async invoke(params: any) {
+    const { prompt } = params;
+    const imageUrl = await generateImage(prompt);
+    
+    return {
+      images: [imageUrl]
+    };
+  }
+};
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -23,15 +58,15 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': xai('grok-2-1212'),
+        'chat-model': customDeepSeek,
         'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
+          model: customDeepSeek,
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
+        'title-model': customDeepSeek,
+        'artifact-model': customDeepSeek,
       },
       imageModels: {
-        'small-model': xai.image('grok-2-image'),
+        'small-model': customDeepSeekImage,
       },
     });
