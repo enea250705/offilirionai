@@ -76,7 +76,7 @@ export function VisibilitySelector({
           variant="outline"
           className="hidden md:flex md:px-2 md:h-[34px]"
         >
-          {selectedVisibility?.Icon}
+          {selectedVisibility?.Icon && <selectedVisibility.Icon size={16} />}
           {selectedVisibility?.label}
           <ChevronDownIcon />
         </Button>
