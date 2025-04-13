@@ -1,5 +1,4 @@
 import {
-  LanguageModel,
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
@@ -13,11 +12,15 @@ import {
 } from './models.test';
 import { generateChatCompletion, generateImage } from './deepseek';
 
-// Create a simpler custom language model using the SDK's helper class
-class DeepSeekLanguageModel implements LanguageModel {
-  id = 'deepseek-chat';
+// Create custom language model matching the expected interface
+class DeepSeekLanguageModel {
+  readonly specificationVersion = 'v1';
+  readonly provider = 'custom';
+  readonly modelId = 'deepseek-chat'; 
+  readonly defaultObjectGenerationMode = 'json';
+  readonly streamable = false;
 
-  async generate(params: any) {
+  async invoke(params: any) {
     try {
       const { messages, maxTokens } = params;
       const userMessage = messages[messages.length - 1].content;
@@ -26,37 +29,56 @@ class DeepSeekLanguageModel implements LanguageModel {
       const response = await generateChatCompletion(userMessage, isPro);
       
       return {
-        text: response,
+        content: response,
         usage: {
-          promptTokens: messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) / 4,
-          completionTokens: response.length / 4,
-          totalTokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
+          prompt_tokens: messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) / 4,
+          completion_tokens: response.length / 4,
+          total_tokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
         }
       };
     } catch (error) {
       console.error('Error generating text with DeepSeek:', error);
-      return { text: 'An error occurred while generating a response.' };
+      return { content: 'An error occurred while generating a response.' };
     }
+  }
+
+  async doGenerate(params: any) {
+    return this.invoke(params);
+  }
+
+  async *doStream(params: any) {
+    const result = await this.invoke(params);
+    yield result;
   }
 }
 
 // Create a simpler image generation model
-class DeepSeekImageModel implements LanguageModel {
-  id = 'deepseek-image';
+class DeepSeekImageModel {
+  readonly specificationVersion = 'v1';
+  readonly provider = 'custom';
+  readonly modelId = 'deepseek-image';
 
-  async generate(params: any) {
+  async invoke(params: any) {
     try {
       const { prompt } = params;
       const imageUrl = await generateImage(prompt);
       
       return {
-        text: '',
         images: [imageUrl]
       };
     } catch (error) {
       console.error('Error generating image with DeepSeek:', error);
-      return { text: 'An error occurred while generating an image.' };
+      return { images: [] };
     }
+  }
+
+  async doGenerate(params: any) {
+    return this.invoke(params);
+  }
+
+  async *doStream(params: any) {
+    const result = await this.invoke(params);
+    yield result;
   }
 }
 
