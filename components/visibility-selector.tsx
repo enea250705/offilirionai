@@ -18,29 +18,28 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { PiEyeLight, PiEyeSlashLight } from 'react-icons/pi';
-import type { VisibilityType } from '@/lib/types';
-
 import {
   CheckCircleFillIcon,
   ChevronDownIcon,
   GlobeIcon,
   LockIcon,
+  EyeIcon,
 } from './icons';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import type { VisibilityType } from '@/lib/types';
 
 const visibilities = [
   {
     id: 'private',
     label: 'Private',
     description: 'Only you can see this chat',
-    Icon: PiEyeSlashLight
+    Icon: LockIcon
   },
   {
     id: 'public',
     label: 'Public',
     description: 'Anyone with the link can see this chat',
-    Icon: PiEyeLight
+    Icon: EyeIcon
   }
 ] as const;
 
