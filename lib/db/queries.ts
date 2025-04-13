@@ -27,6 +27,8 @@ import { ArtifactKind } from '@/components/artifact';
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
+const isDbAvailable = !!process.env.POSTGRES_URL;
+
 export async function getUser(email: string): Promise<Array<User>> {
   try {
     return await db.select().from(user).where(eq(user.email, email));
@@ -151,6 +153,11 @@ export async function getChatsByUserId({
 }
 
 export async function getChatById({ id }: { id: string }) {
+  if (!isDbAvailable) {
+    console.warn('Database not available. Returning mock data.');
+    return { id, userId: 'anonymous', title: 'New Chat', visibility: 'private', createdAt: new Date() };
+  }
+  
   try {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
     return selectedChat;
