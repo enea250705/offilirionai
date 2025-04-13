@@ -14,6 +14,11 @@ import { generateChatCompletion, generateImage } from './deepseek';
 
 // Create a wrapper for our custom DeepSeek implementation
 const customDeepSeek = {
+  specificationVersion: 'v1',
+  provider: 'custom',
+  modelId: 'deepseek-chat',
+  defaultObjectGenerationMode: 'json',
+  streamable: true,
   async invoke(params: any) {
     const { messages, maxTokens } = params;
     const userMessage = messages[messages.length - 1].content;
@@ -36,6 +41,9 @@ const customDeepSeek = {
 
 // Create a wrapper for image generation
 const customDeepSeekImage = {
+  specificationVersion: 'v1',
+  provider: 'custom',
+  modelId: 'deepseek-image',
   async invoke(params: any) {
     const { prompt } = params;
     const imageUrl = await generateImage(prompt);
