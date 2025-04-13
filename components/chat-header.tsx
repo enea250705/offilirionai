@@ -11,7 +11,8 @@ import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
+import { VisibilitySelector } from './visibility-selector';
+import { VisibilityType } from '@/lib/types';
 
 function PureChatHeader({
   chatId,
