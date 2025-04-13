@@ -2,7 +2,6 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-  deepseek,
 } from 'ai';
 import { isTestEnvironment } from '../constants';
 import {
