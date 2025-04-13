@@ -36,6 +36,13 @@ const customDeepSeek = {
         total_tokens: (messages.reduce((acc: number, msg: any) => acc + msg.content.length, 0) + response.length) / 4
       }
     };
+  },
+  async doGenerate(params: any) {
+    return this.invoke(params);
+  },
+  async *doStream(params: any) {
+    const result = await this.invoke(params);
+    yield result;
   }
 };
 
@@ -51,6 +58,13 @@ const customDeepSeekImage = {
     return {
       images: [imageUrl]
     };
+  },
+  async doGenerate(params: any) {
+    return this.invoke(params);
+  },
+  async *doStream(params: any) {
+    const result = await this.invoke(params);
+    yield result;
   }
 };
 
