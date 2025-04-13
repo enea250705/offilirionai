@@ -1,5 +1,5 @@
 import {
-  CustomLanguageModel,
+  LanguageModel,
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
@@ -14,7 +14,7 @@ import {
 import { generateChatCompletion, generateImage } from './deepseek';
 
 // Create a simpler custom language model using the SDK's helper class
-class DeepSeekLanguageModel implements CustomLanguageModel {
+class DeepSeekLanguageModel implements LanguageModel {
   id = 'deepseek-chat';
 
   async generate(params: any) {
@@ -41,7 +41,7 @@ class DeepSeekLanguageModel implements CustomLanguageModel {
 }
 
 // Create a simpler image generation model
-class DeepSeekImageModel implements CustomLanguageModel {
+class DeepSeekImageModel implements LanguageModel {
   id = 'deepseek-image';
 
   async generate(params: any) {
