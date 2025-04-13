@@ -6,6 +6,9 @@ import { getUser } from '@/lib/db/queries';
 
 import { authConfig } from './auth.config';
 
+// Add this to detect if database is available
+const isDbAvailable = !!process.env.POSTGRES_URL;
+
 interface ExtendedSession extends Session {
   user: User;
 }
@@ -21,6 +24,20 @@ export const {
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
+        // If database is not available, use a demo account
+        if (!isDbAvailable) {
+          console.warn('Database not available, using demo account');
+          if (email === 'demo@ilirion.ai' && password === 'demo') {
+            return {
+              id: 'demo-user',
+              email: 'demo@ilirion.ai',
+              name: 'Demo User',
+            } as any;
+          }
+          return null;
+        }
+        
+        // Normal database-backed authentication
         const users = await getUser(email);
         if (users.length === 0) return null;
         // biome-ignore lint: Forbidden non-null assertion.

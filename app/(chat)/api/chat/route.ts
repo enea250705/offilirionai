@@ -26,6 +26,8 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 
+const isDbAvailable = !!process.env.POSTGRES_URL;
+
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
@@ -54,12 +56,14 @@ export async function POST(request: Request) {
 
     const chat = await getChatById({ id });
 
-    if (!chat) {
+    if (!chat && isDbAvailable) {
       const title = await generateTitleFromUserMessage({
         message: userMessage,
       });
 
       await saveChat({ id, userId: session.user.id, title });
+    } else if (!chat) {
+      console.warn('Database not available for chat creation.');
     } else {
       if (chat.userId !== session.user.id) {
         return new Response('Unauthorized', { status: 401 });

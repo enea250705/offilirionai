@@ -43,6 +43,24 @@ export interface ChatHistory {
 
 const PAGE_SIZE = 20;
 
+const isDbAvailable = !!process.env.POSTGRES_URL;
+
+const fetcher = async (url: string) => {
+  if (!isDbAvailable) {
+    console.warn('Database not available, returning mock chat history');
+    return {
+      data: [],
+      pageCount: 0,
+    };
+  }
+  
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error('Failed to fetch data');
+  }
+  return res.json();
+};
+
 const groupChatsByDate = (chats: Chat[]): GroupedChats => {
   const now = new Date();
   const oneWeekAgo = subWeeks(now, 1);
